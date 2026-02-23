@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTrack - Detail Materi</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="mainApp" class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-landmark"></i></div>
+                    <span>TimeTrack</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu Utama</div>
+                    <a href="index.html" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Beranda</span>
+                    </a>
+                    <a href="timeline.html" class="nav-item">
+                        <i class="fas fa-stream"></i>
+                        <span>Timeline Sejarah</span>
+                    </a>
+                    <a href="tokoh.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Tokoh &amp; Kisah</span>
+                    </a>
+                    <a href="materi.html" class="nav-item active">
+                        <i class="fas fa-book"></i>
+                        <span>Materi Pembelajaran</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Lainnya</div>
+                    <a href="notification.html" class="nav-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifikasi</span>
+                    </a>
+                    <a href="saved.html" class="nav-item">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Tersimpan</span>
+                    </a>
+                    <a href="achievement.html" class="nav-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Pencapaian</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="user-profile" href="profile.html" style="text-decoration: none; color: inherit;">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">Ahmad Fauzi</div>
+                        <div class="user-role">Pelajar Aktif</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--text-light); font-size: 12px;"></i>
+                </a>
+            </div>
+        </aside>
+
+        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()" type="button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Cari materi sejarah, tokoh, atau peristiwa...">
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="window.location.href='notification.html'" type="button">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="icon-btn" onclick="window.location.href='profile.html'" type="button">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="content-detail">
+                    <div class="content-main">
+                        <img src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800" alt="Sejarah" class="content-header-image">
+
+                        <div class="content-body">
+                            <div class="content-meta">
+                                <div class="content-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>17 Agustus 1945</span>
+                                </div>
+                                <div class="content-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>15 menit baca</span>
+                                </div>
+                                <div class="content-meta-item">
+                                    <i class="fas fa-signal"></i>
+                                    <span>Level: Pemula</span>
+                                </div>
+                            </div>
+
+                            <h1 class="content-title">Proklamasi Kemerdekaan Indonesia</h1>
+
+                            <div class="content-text">
+                                <p>Proklamasi kemerdekaan Indonesia terjadi pada tanggal 17 Agustus 1945, dua hari setelah Kaisar Jepang Hirohito menyatakan menyerah tanpa syarat kepada Sekutu. Peristiwa bersejarah ini berlangsung di Jalan Pegangsaan Timur No. 56, Jakarta Pusat.</p>
+
+                                <p>Soekarno dan Mohammad Hatta memproklamasikan kemerdekaan bangsa Indonesia atas nama bangsa Indonesia. Proklamasi ini merupakan puncak perjuangan bangsa Indonesia yang telah berlangsung selama berabad-abad melawan penjajahan.</p>
+
+                                <h3 style="margin: 30px 0 15px; color: var(--text);">Latar Belakang</h3>
+                                <p>Setelah Jepang menyerah kepada Sekutu pada 15 Agustus 1945, golongan muda mendesak agar kemerdekaan segera diproklamasikan. Soekarno dan Hatta sempat dibawa ke Rengasdengklok agar tidak terpengaruh Jepang.</p>
+
+                                <h3 style="margin: 30px 0 15px; color: var(--text);">Penyusunan Naskah</h3>
+                                <p>Naskah proklamasi ditulis oleh Soekarno, Hatta, dan Achmad Soebardjo, dan diketik oleh Sayuti Melik. Pembacaan proklamasi dihadiri oleh beberapa tokoh penting dan diumumkan kepada seluruh rakyat Indonesia.</p>
+
+                                <h3 style="margin: 30px 0 15px; color: var(--text);">Dampak dan Signifikansi</h3>
+                                <p>Proklamasi ini menjadi tonggak sejarah bangsa Indonesia yang diabadikan setiap tahun sebagai Hari Kemerdekaan. Peristiwa ini mengubah sejarah perjuangan bangsa Indonesia dari masa penjajahan menuju era kemerdekaan.</p>
+                            </div>
+
+                            <div style="margin-top: 40px; padding: 30px; background: var(--bg); border-radius: 16px;">
+                                <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-question-circle" style="color: var(--primary);"></i>
+                                    Quiz Pemahaman
+                                </h3>
+                                <div style="display: flex; flex-direction: column; gap: 15px;">
+                                    <div style="padding: 15px; background: white; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='transparent'">
+                                        <strong>Siapa yang mengetik naskah proklamasi?</strong>
+                                    </div>
+                                    <div style="padding: 15px; background: white; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: all 0.3s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='transparent'">
+                                        <strong>Kapan tepatnya Jepang menyerah kepada Sekutu?</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-sidebar">
+                        <div class="sidebar-card">
+                            <h3><i class="fas fa-list" style="color: var(--primary);"></i> Daftar Isi</h3>
+                            <ul style="list-style: none; padding: 0; font-size: 14px;">
+                                <li style="padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--primary); font-weight: 600;">
+                                    <i class="fas fa-check-circle" style="margin-right: 10px;"></i> Latar Belakang
+                                </li>
+                                <li style="padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text-light);">
+                                    <i class="far fa-circle" style="margin-right: 10px;"></i> Penyusunan Naskah
+                                </li>
+                                <li style="padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text-light);">
+                                    <i class="far fa-circle" style="margin-right: 10px;"></i> Pembacaan Proklamasi
+                                </li>
+                                <li style="padding: 12px 0; color: var(--text-light);">
+                                    <i class="far fa-circle" style="margin-right: 10px;"></i> Dampak dan Signifikansi
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-card">
+                            <h3><i class="fas fa-bookmark" style="color: var(--primary);"></i> Materi Lanjutan</h3>
+                            <div class="related-item">
+                                <img src="https://images.unsplash.com/photo-1545562083-c583d060a12b?w=200" alt="Related">
+                                <div class="related-content">
+                                    <h4>PPKI dan Persiapan Kemerdekaan</h4>
+                                    <span>12 menit baca</span>
+                                </div>
+                            </div>
+                            <div class="related-item">
+                                <img src="https://images.unsplash.com/photo-1599930113854-d6d7fd521f10?w=200" alt="Related">
+                                <div class="related-content">
+                                    <h4>Perumusan Pancasila</h4>
+                                    <span>18 menit baca</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-primary" style="width: 100%;" type="button">
+                            <i class="fas fa-check-circle"></i> Tandai Selesai
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <nav class="mobile-nav">
+        <div class="mobile-nav-items">
+            <a href="index.html" class="mobile-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="timeline.html" class="mobile-nav-item">
+                <i class="fas fa-stream"></i>
+                <span>Timeline</span>
+            </a>
+            <a href="materi.html" class="mobile-nav-item active">
+                <i class="fas fa-book"></i>
+                <span>Materi</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTrack - Detail Tokoh</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="mainApp" class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-landmark"></i></div>
+                    <span>TimeTrack</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu Utama</div>
+                    <a href="index.html" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Beranda</span>
+                    </a>
+                    <a href="timeline.html" class="nav-item">
+                        <i class="fas fa-stream"></i>
+                        <span>Timeline Sejarah</span>
+                    </a>
+                    <a href="tokoh.html" class="nav-item active">
+                        <i class="fas fa-users"></i>
+                        <span>Tokoh &amp; Kisah</span>
+                    </a>
+                    <a href="materi.html" class="nav-item">
+                        <i class="fas fa-book"></i>
+                        <span>Materi Pembelajaran</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Lainnya</div>
+                    <a href="notification.html" class="nav-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifikasi</span>
+                    </a>
+                    <a href="saved.html" class="nav-item">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Tersimpan</span>
+                    </a>
+                    <a href="achievement.html" class="nav-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Pencapaian</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="user-profile" href="profile.html" style="text-decoration: none; color: inherit;">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">Ahmad Fauzi</div>
+                        <div class="user-role">Pelajar Aktif</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--text-light); font-size: 12px;"></i>
+                </a>
+            </div>
+        </aside>
+
+        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()" type="button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Cari materi sejarah, tokoh, atau peristiwa...">
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="window.location.href='notification.html'" type="button">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="icon-btn" onclick="window.location.href='profile.html'" type="button">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="content-detail">
+                    <div class="content-main">
+                        <div style="position: relative;">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800" alt="Soekarno" class="content-header-image">
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 200px; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);"></div>
+                            <div style="position: absolute; bottom: 30px; left: 40px; color: white;">
+                                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 10px;">Presiden Pertama Republik Indonesia</div>
+                                <h1 style="font-size: 42px; font-weight: 700;">Ir. Soekarno</h1>
+                            </div>
+                        </div>
+
+                        <div class="content-body">
+                            <div class="content-meta">
+                                <div class="content-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>6 Juni 1901 - 21 Juni 1970</span>
+                                </div>
+                                <div class="content-meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Surabaya, Jawa Timur</span>
+                                </div>
+                                <div class="content-meta-item">
+                                    <i class="fas fa-award"></i>
+                                    <span>Pahlawan Proklamator</span>
+                                </div>
+                            </div>
+
+                            <div class="content-text">
+                                <p>Ir. Soekarno atau yang akrab dipanggil Bung Karno adalah Presiden pertama Republik Indonesia yang menjabat pada periode 1945–1967. Ia adalah proklamator kemerdekaan Indonesia (bersama dengan Mohammad Hatta) yang terjadi pada tanggal 17 Agustus 1945.</p>
+
+                                <p>Soekarno adalah pemimpin besar yang berhasil mempersatukan berbagai suku dan kelompok di Indonesia dalam perjuangan kemerdekaan. Karisma dan oratorinya yang luar biasa membuatnya dikenal di dunia internasional.</p>
+
+                                <p>Selama masa kepresidenannya, Soekarno berhasil membangun fondasi negara Indonesia, membangkitkan semangat nasionalisme, dan memperjuangkan kepentingan bangsa-bangsa Asia-Afrika melalui Konferensi Asia-Afrika 1955 di Bandung.</p>
+
+                                <p>Warisan pemikirannya tentang Pancasila, Marhaenisme, dan Nasakom (Nasionalis, Agama, Komunis) masih menjadi bahan studi hingga kini.</p>
+                            </div>
+
+                            <button class="btn-primary" style="margin-top: 30px; max-width: 300px;" type="button">
+                                <i class="fas fa-book-open"></i> Baca Biografi Lengkap
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="content-sidebar">
+                        <div class="sidebar-card">
+                            <h3><i class="fas fa-lightbulb" style="color: var(--primary);"></i> Fakta Menarik</h3>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-light);">
+                                    <i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                                    Memiliki 9 istri dan 11 anak
+                                </li>
+                                <li style="padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text-light);">
+                                    <i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                                    Mahir berbahasa asing: Belanda, Inggris, Prancis, Jerman
+                                </li>
+                                <li style="padding: 10px 0; font-size: 14px; color: var(--text-light);">
+                                    <i class="fas fa-check-circle" style="color: var(--primary); margin-right: 10px;"></i>
+                                    Pernah diusir dari sekolah karena aktivitas politik
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="sidebar-card">
+                            <h3><i class="fas fa-book" style="color: var(--primary);"></i> Materi Terkait</h3>
+                            <div class="related-item">
+                                <img src="https://images.unsplash.com/photo-1564507592333-c60657eea523?w=200" alt="Proklamasi">
+                                <div class="related-content">
+                                    <h4>Proklamasi Kemerdekaan</h4>
+                                    <span>15 menit baca</span>
+                                </div>
+                            </div>
+                            <div class="related-item">
+                                <img src="https://images.unsplash.com/photo-1545562083-c583d060a12b?w=200" alt="Konferensi">
+                                <div class="related-content">
+                                    <h4>Konferensi Asia-Afrika</h4>
+                                    <span>20 menit baca</span>
+                                </div>
+                            </div>
+                            <div class="related-item">
+                                <img src="https://images.unsplash.com/photo-1599930113854-d6d7fd521f10?w=200" alt="Pancasila">
+                                <div class="related-content">
+                                    <h4>Lahirnya Pancasila</h4>
+                                    <span>12 menit baca</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <nav class="mobile-nav">
+        <div class="mobile-nav-items">
+            <a href="index.html" class="mobile-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="timeline.html" class="mobile-nav-item">
+                <i class="fas fa-stream"></i>
+                <span>Timeline</span>
+            </a>
+            <a href="materi.html" class="mobile-nav-item">
+                <i class="fas fa-book"></i>
+                <span>Materi</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

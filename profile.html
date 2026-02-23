@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeTrack - Profil</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="mainApp" class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-landmark"></i></div>
+                    <span>TimeTrack</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Menu Utama</div>
+                    <a href="index.html" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Beranda</span>
+                    </a>
+                    <a href="timeline.html" class="nav-item">
+                        <i class="fas fa-stream"></i>
+                        <span>Timeline Sejarah</span>
+                    </a>
+                    <a href="tokoh.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Tokoh &amp; Kisah</span>
+                    </a>
+                    <a href="materi.html" class="nav-item">
+                        <i class="fas fa-book"></i>
+                        <span>Materi Pembelajaran</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Lainnya</div>
+                    <a href="notification.html" class="nav-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifikasi</span>
+                    </a>
+                    <a href="saved.html" class="nav-item">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Tersimpan</span>
+                    </a>
+                    <a href="achievement.html" class="nav-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>Pencapaian</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="user-profile" href="profile.html" style="text-decoration: none; color: inherit;">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" alt="User" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name">Ahmad Fauzi</div>
+                        <div class="user-role">Pelajar Aktif</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color: var(--text-light); font-size: 12px;"></i>
+                </a>
+            </div>
+        </aside>
+
+        <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()" type="button">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Cari materi sejarah, tokoh, atau peristiwa...">
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="window.location.href='notification.html'" type="button">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="icon-btn" onclick="window.location.href='profile.html'" type="button">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="profile-header-card">
+                    <div class="profile-cover"></div>
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300" alt="Profile" class="profile-avatar-large">
+                    <div class="profile-name-large">Ahmad Fauzi</div>
+                    <div class="profile-role-large">Pelajar Aktif • Bergabung sejak 2024</div>
+
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="profile-stat-value">24</div>
+                            <div class="profile-stat-label">Materi</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value">8</div>
+                            <div class="profile-stat-label">Badge</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value">156</div>
+                            <div class="profile-stat-label">XP</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="profile-stat-value">12</div>
+                            <div class="profile-stat-label">Hari Streak</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-grid">
+                    <div class="profile-card">
+                        <h3><i class="fas fa-cog" style="color: var(--primary);"></i> Pengaturan Akun</h3>
+
+                        <div class="menu-item" onclick="window.location.href='notification.html'">
+                            <i class="fas fa-bell blue"></i>
+                            <div class="menu-item-content">
+                                <h4>Notifikasi</h4>
+                                <p>Kelola pengaturan notifikasi</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+
+                        <div class="menu-item">
+                            <i class="fas fa-shield-alt green"></i>
+                            <div class="menu-item-content">
+                                <h4>Privasi &amp; Keamanan</h4>
+                                <p>Ubah password dan keamanan akun</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+
+                        <div class="menu-item">
+                            <i class="fas fa-paint-brush orange"></i>
+                            <div class="menu-item-content">
+                                <h4>Tampilan</h4>
+                                <p>Mode gelap dan pengaturan tampilan</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3><i class="fas fa-chart-line" style="color: var(--primary);"></i> Aktivitas</h3>
+
+                        <div class="menu-item" onclick="window.location.href='saved.html'">
+                            <i class="fas fa-bookmark blue"></i>
+                            <div class="menu-item-content">
+                                <h4>Materi Tersimpan</h4>
+                                <p>12 materi tersimpan</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+
+                        <div class="menu-item" onclick="window.location.href='achievement.html'">
+                            <i class="fas fa-trophy green"></i>
+                            <div class="menu-item-content">
+                                <h4>Pencapaian</h4>
+                                <p>Lihat badge dan pencapaian</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+
+                        <div class="menu-item">
+                            <i class="fas fa-history orange"></i>
+                            <div class="menu-item-content">
+                                <h4>Riwayat Belajar</h4>
+                                <p>Lihat progress belajar Anda</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+
+                        <div class="menu-item" onclick="logout()">
+                            <i class="fas fa-sign-out-alt red"></i>
+                            <div class="menu-item-content">
+                                <h4>Keluar</h4>
+                                <p>Logout dari akun Anda</p>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-light);"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <nav class="mobile-nav">
+        <div class="mobile-nav-items">
+            <a href="index.html" class="mobile-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="timeline.html" class="mobile-nav-item">
+                <i class="fas fa-stream"></i>
+                <span>Timeline</span>
+            </a>
+            <a href="materi.html" class="mobile-nav-item">
+                <i class="fas fa-book"></i>
+                <span>Materi</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-item active">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
