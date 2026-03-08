@@ -1,6 +1,8 @@
-let supabaseClient = null;
-let supabaseClientPromise = null;
-let supabasePublicConfig = null;
+if (typeof window.supabaseClient === 'undefined') {
+    var supabaseClient = null;
+    var supabaseClientPromise = null;
+    var supabasePublicConfig = null;
+}
 
 function loadSupabaseSdk() {
     return new Promise((resolve, reject) => {
@@ -40,14 +42,13 @@ async function getSupabasePublicConfig() {
         console.warn('Backend config fetch failed, checking local fallback...');
     }
 
-    // 2. Coba ambil dari window.TT_PUBLIC_CONFIG (Local Fallback)
+    // 2. Coba ambil dari window.TT_PUBLIC_CONFIG (Cadangan Lokal)
     if (window.TT_PUBLIC_CONFIG && window.TT_PUBLIC_CONFIG.SUPABASE_URL && window.TT_PUBLIC_CONFIG.SUPABASE_ANON_KEY) {
-        supabasePublicConfig = {
+        return {
             url: window.TT_PUBLIC_CONFIG.SUPABASE_URL,
             anonKey: window.TT_PUBLIC_CONFIG.SUPABASE_ANON_KEY,
             ytApiKey: window.TT_PUBLIC_CONFIG.YT_API_KEY
         };
-        return supabasePublicConfig;
     }
 
     throw new Error('Konfigurasi Supabase tidak ditemukan. Pastikan backend server berjalan atau file "assets/js/config.js" ada.');
@@ -71,12 +72,14 @@ async function getSupabaseClient() {
         // Listener Perubahan Auth (Penting untuk menangani Token Expired)
         client.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-                // Clear local data
+                // Hapus data lokal
                 Object.keys(localStorage).forEach(key => {
                     if (key.startsWith('sb-')) localStorage.removeItem(key);
                 });
                 
-                if (!window.location.pathname.endsWith('login.html')) {
+                // PENTING: Jangan redirect jika kita sudah di halaman login/register/landing
+                const path = window.location.pathname;
+                if (!path.endsWith('login.html') && !path.endsWith('register.html') && !path.endsWith('landing.html') && !path.endsWith('/')) {
                      window.location.href = 'login.html';
                 }
             }
@@ -92,30 +95,54 @@ async function getSupabaseClient() {
 async function isPremiumActive(sb, userId) {
     try {
         if (!sb || !userId) return false;
-        const nowIso = new Date().toISOString();
+        const now = new Date();
+        const nowIso = now.toISOString();
 
+        // 1. Cek Profil (Sumber Kebenaran Utama)
         try {
-            const { data: prof } = await sb.from('profiles').select('premium_expires_at').eq('id', userId).maybeSingle();
-            if (prof && prof.premium_expires_at && String(prof.premium_expires_at) > nowIso) return true;
+            // Pilih SEMUA kolom premium potensial agar aman
+            const { data: prof } = await sb.from('profiles')
+                .select('plan, is_premium, premium_until, premium_expires_at')
+                .eq('id', userId)
+                .maybeSingle();
+            
+            if (prof) {
+                // Cek 'premium_expires_at' (Standar)
+                if (prof.premium_expires_at && new Date(prof.premium_expires_at) > now) return true;
+                
+                // Cek 'premium_until' (Legacy/Lama)
+                if (prof.premium_until && new Date(prof.premium_until) > now) return true;
+                
+                // Cek 'plan' atau 'is_premium' (Permanen/Berlangganan)
+                const isPlanPremium = (String(prof.plan || '').toLowerCase() === 'premium');
+                const isBoolPremium = !!prof.is_premium;
+                
+                if (isPlanPremium || isBoolPremium) {
+                    // Jika plan premium, cek apakah sudah kedaluwarsa (jika tanggal kedaluwarsa ada)
+                    // Jika tidak ada tanggal kedaluwarsa, anggap permanen/aktif
+                    const expiry = prof.premium_expires_at || prof.premium_until;
+                    if (!expiry) return true; 
+                    if (new Date(expiry) > now) return true;
+                }
+            }
         } catch (e) {
-            // ignore
+            console.warn('Profile check failed in isPremiumActive', e);
         }
 
+        // 2. Cek Pembelian (Sumber Cadangan)
         const { data: purchases, error } = await sb
             .from('premium_purchases')
-            .select('id, status, expires_at, confirmed_at, created_at')
+            .select('expires_at')
             .eq('user_id', userId)
             .eq('status', 'confirmed')
-            .order('confirmed_at', { ascending: false })
-            .order('created_at', { ascending: false })
+            .gt('expires_at', nowIso) // Hanya ambil yang aktif
             .limit(1);
 
-        if (error) return false;
-        const row = Array.isArray(purchases) && purchases[0] ? purchases[0] : null;
-        if (!row) return false;
-        if (!row.expires_at) return true;
-        return String(row.expires_at) > nowIso;
+        if (!error && purchases && purchases.length > 0) return true;
+
+        return false;
     } catch (e) {
+        console.error('isPremiumActive Error:', e);
         return false;
     }
 }

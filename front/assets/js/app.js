@@ -58,6 +58,36 @@ async function boot() {
         await loadScript('assets/js/dailyTasks.js'); // Restore Daily Tasks
         await loadScript('assets/js/bootstrap.js');
 
+        // Global UI Updater (Agar bisa dipanggil dari mana saja)
+        window.updateUserUI = async function() {
+            try {
+                if (typeof getSupabaseClient !== 'function') return;
+                const sb = await getSupabaseClient();
+                const { data: { user } } = await sb.auth.getUser();
+                
+                if (user) {
+                    const { data: profile } = await sb.from('profiles').select('points, badges, materials_read_count').eq('id', user.id).single();
+                    if (profile) {
+                        // Update Header XP (Jika ada di halaman)
+                        const headerXp = document.getElementById('headerUserXp');
+                        if (headerXp) headerXp.textContent = `${profile.points || 0} XP`;
+
+                        // Update Dashboard Stats (index.html)
+                        const statXP = document.getElementById('statUserXP');
+                        if (statXP) statXP.textContent = profile.points || 0;
+
+                        const statMateri = document.getElementById('statMateriSelesai');
+                        if (statMateri) statMateri.textContent = profile.materials_read_count || 0;
+
+                        const statBadge = document.getElementById('statBadgeCount');
+                        if (statBadge) statBadge.textContent = profile.badges || 0;
+                    }
+                }
+            } catch (e) {
+                console.error('Update UI Failed:', e);
+            }
+        };
+
         // Pastikan initApp ada sebelum dijalankan
         if (typeof window.initApp === 'function') {
             window.initApp();

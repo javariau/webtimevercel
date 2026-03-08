@@ -481,8 +481,22 @@ window.updateUserUI = async () => {
         }
     };
 
-    updateUserUI();
-    requireAuthIfNeeded();
+    // 17. Auto-Refresh Data saat halaman aktif (Focus)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            console.log('Tab active, refreshing user UI...');
+            if (typeof window.updateUserUI === 'function') {
+                window.updateUserUI();
+            }
+        }
+    });
+
+    // Panggil updateUserUI setiap kali boot selesai
+    if (typeof window.updateUserUI === 'function') {
+        window.updateUserUI();
+    }
+
+    // requireAuthIfNeeded(); // Matikan redirect global yang agresif
     initPremiumGuard();
     // Init Premium Realtime (Purchases)
     initPremiumRealtime();

@@ -1,4 +1,4 @@
-// Favorites Logic
+// Logika Favorit (Simpan Materi)
 
 async function toggleFavorite() {
     const btn = document.getElementById('favoriteBtn');
@@ -22,18 +22,18 @@ async function toggleFavorite() {
 
         if (!materiId) return;
 
-        // Check if already favorited
+        // Cek apakah sudah disimpan
         const { data: existing, error: checkErr } = await sb
-            .from('favorites')
+            .from('user_favorites')
             .select('*')
             .eq('user_id', user.id)
             .eq('materi_id', materiId)
             .maybeSingle();
 
         if (existing) {
-            // Remove
+            // Hapus dari favorit
             const { error: delErr } = await sb
-                .from('favorites')
+                .from('user_favorites')
                 .delete()
                 .eq('id', existing.id);
             
@@ -42,9 +42,9 @@ async function toggleFavorite() {
                 if (window.showCustomAlert) window.showCustomAlert('success', 'Dihapus', 'Materi dihapus dari daftar simpan.');
             }
         } else {
-            // Add
+            // Tambahkan ke favorit
             const { error: insErr } = await sb
-                .from('favorites')
+                .from('user_favorites')
                 .insert([{ user_id: user.id, materi_id: materiId }]);
             
             if (!insErr) {
@@ -54,7 +54,7 @@ async function toggleFavorite() {
         }
 
     } catch (e) {
-        console.error('Toggle favorite error:', e);
+        console.error('Error toggle favorit:', e);
     }
 }
 
@@ -64,13 +64,13 @@ function updateFavoriteBtn(isSaved) {
 
     if (isSaved) {
         btn.innerHTML = '<i class="fas fa-bookmark"></i> Tersimpan';
-        btn.classList.add('active'); // Optional: add CSS for active state
+        btn.classList.add('active'); // Opsional: tambahkan CSS untuk status aktif
         btn.style.background = '#e0e0e0';
         btn.style.color = '#333';
     } else {
         btn.innerHTML = '<i class="far fa-bookmark"></i> Simpan';
         btn.classList.remove('active');
-        btn.style.background = ''; // Reset to default
+        btn.style.background = ''; // Reset ke default
         btn.style.color = '';
     }
 }
@@ -89,7 +89,7 @@ async function checkFavoriteStatus() {
         if (!materiId) return;
 
         const { data: existing } = await sb
-            .from('favorites')
+            .from('user_favorites')
             .select('*')
             .eq('user_id', user.id)
             .eq('materi_id', materiId)
@@ -97,18 +97,18 @@ async function checkFavoriteStatus() {
 
         updateFavoriteBtn(!!existing);
 
-        // Attach Click Event
+        // Pasang Event Click
         btn.onclick = toggleFavorite;
 
     } catch (e) {
-        console.error('Check favorite error:', e);
+        console.error('Error cek status favorit:', e);
     }
 }
 
-// Auto init on detail page
+// Inisialisasi otomatis di halaman detail
 if (window.location.pathname.includes('content-detail.html')) {
     document.addEventListener('DOMContentLoaded', () => {
-        // Wait a bit for other scripts
+        // Tunggu sebentar agar skrip lain siap
         setTimeout(checkFavoriteStatus, 500);
     });
 }

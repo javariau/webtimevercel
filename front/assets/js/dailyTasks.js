@@ -299,7 +299,7 @@ window.claimTaskReward = async function(taskId) {
                     console.log('Sukses update Points (XP) via Direct Update:', finalXp);
                 } else {
                     console.error('Direct update failed:', directErr);
-                    throw directErr;
+                    // Silent fail (tidak perlu popup) karena status tugas sudah tersimpan
                 }
             }
         } catch (directErr) {

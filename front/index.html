@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimeTrack - Belajar Sejarah Indonesia</title>
+    <link rel="icon" type="image/png" href="assets/img/Frame 1000001789.png">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="assets/js/config.js"></script>
     <!-- Removed style="display:none" to prevent permanent blank screen -->
 </head>
 <body>
@@ -146,20 +148,22 @@
                             <h1 id="welcomeUserHeader">Selamat Datang! 👋</h1>
                             <p>Lanjutkan perjalanan belajar sejarahmu.</p>
                             
+                            <!-- 
                             <div class="hero-stats">
                                 <div class="stat-item">
-                                    <div class="stat-value">...</div>
+                                    <div class="stat-value" id="statMateriSelesai">...</div>
                                     <div class="stat-label">Materi Selesai</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-value">...</div>
+                                    <div class="stat-value" id="statBadgeCount">...</div>
                                     <div class="stat-label">Badge Diperoleh</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-value">...</div>
+                                    <div class="stat-value" id="statUserXP">...</div>
                                     <div class="stat-label">Poin XP</div>
                                 </div>
                             </div>
+                            -->
                         </div>
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Aristotle_Altemps_Inv8575.jpg/440px-Aristotle_Altemps_Inv8575.jpg" alt="Aristoteles" class="hero-image">
                     </div>
@@ -283,6 +287,7 @@
             </a>
         </div>
     </nav>
+    <script src="assets/js/supabaseClient.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
 </html>

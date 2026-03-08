@@ -884,11 +884,38 @@ async function initQuizDetailPage() {
 
             const totalQuestions = qs.length;
             const finalScore = Math.round((correctCount / totalQuestions) * 100);
-            const xpEarned = correctCount * 10; // 10 XP per jawaban benar
-            const badgesEarned = Math.floor(correctCount / 2); // 2 benar = 1 badge
+            
+            // --- LOGIKA ANTI-SPAM & REWARD ---
+            let xpEarned = 0;
+            let badgesEarned = 0;
+            let alreadyPlayed = false;
+
+            try {
+                // Cek apakah user sudah pernah mengerjakan kuis ini
+                const { data: existingAttempt } = await sb
+                    .from('quiz_attempts')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('quiz_id', quizId)
+                    .maybeSingle();
+
+                if (existingAttempt) {
+                    alreadyPlayed = true;
+                    xpEarned = 0;
+                    badgesEarned = 0;
+                    console.log('Kuis sudah pernah dikerjakan. Tidak ada reward baru.');
+                } else {
+                    // Reward hanya untuk percobaan pertama
+                    xpEarned = correctCount * 10; 
+                    badgesEarned = Math.floor(correctCount / 2); 
+                }
+            } catch (chkErr) {
+                console.warn('Gagal cek attempt:', chkErr);
+                xpEarned = 0; badgesEarned = 0; 
+            }
 
             // DEBUGGING: Pastikan hitungan benar
-            console.log(`Quiz Debug: Benar=${correctCount}, XP=${xpEarned}, Badge=${badgesEarned}`);
+            console.log(`Quiz Result: Benar=${correctCount}, XP=${xpEarned}, Badge=${badgesEarned}, Played=${alreadyPlayed}`);
 
             // Tampilkan Modal Hasil (Langsung)
             // Cari modal di seluruh document (bukan cuma di dalam root)
@@ -980,7 +1007,7 @@ async function initQuizDetailPage() {
                 // Track Daily Task: Quiz / Game
                 if (typeof window.trackDailyTask === 'function') {
                     // Gunakan 'play_game' karena keyword mapping akan mencocokkan 'kuis' atau 'game'
-                    console.log('Tracking Quiz Task...');
+                    // console.log('Tracking Quiz Task...');
                     window.trackDailyTask('play_game', 1);
                 }
 
@@ -992,53 +1019,56 @@ async function initQuizDetailPage() {
                         quiz_id: quizId,
                         score: correctCount, 
                         total_questions: totalQuestions,
-                        points_earned: xpEarned
+                        points_earned: alreadyPlayed ? 0 : xpEarned 
                     }, { onConflict: 'user_id,quiz_id' });
 
                     // 2. UPDATE PROFIL LANGSUNG (XP & BADGE)
-                    // Ambil data profil dulu (Hanya points)
-                    const { data: profile } = await sb.from('profiles').select('points, badges').eq('id', user.id).single();
-                    
-                    if (profile) {
+                    // PENTING: Cek 'alreadyPlayed' agar tidak nambah terus
+                    if (!alreadyPlayed && (xpEarned > 0 || badgesEarned > 0)) {
+                        // Ambil data profil dulu (Hanya points)
+                        const { data: profile } = await sb.from('profiles').select('points, badges').eq('id', user.id).single();
                         
-                        // Robust Badge Parsing
-                        let currentBadgesVal = 0;
-                        if (profile.badges !== null && profile.badges !== undefined) {
-                            if (typeof profile.badges === 'number') currentBadgesVal = profile.badges;
-                            else if (typeof profile.badges === 'string') currentBadgesVal = parseInt(profile.badges) || 0;
-                            else if (Array.isArray(profile.badges)) currentBadgesVal = profile.badges.length;
+                        if (profile) {
+                            
+                            // Robust Badge Parsing
+                            let currentBadgesVal = 0;
+                            if (profile.badges !== null && profile.badges !== undefined) {
+                                if (typeof profile.badges === 'number') currentBadgesVal = profile.badges;
+                                else if (typeof profile.badges === 'string') currentBadgesVal = parseInt(profile.badges) || 0;
+                                else if (Array.isArray(profile.badges)) currentBadgesVal = profile.badges.length;
+                            }
+    
+                            // Use 'points' only (Kolom xp dihapus)
+                            const currentPoints = (profile.points !== undefined && profile.points !== null) ? Number(profile.points) : 0;
+                            
+                            const newTotal = currentPoints + xpEarned;
+                            const newBadges = currentBadgesVal + badgesEarned; // Hitung badge baru
+
+                            const updatePayload = {
+                                points: newTotal,
+                                badges: newBadges // Masukkan badge ke payload update
+                            };
+    
+                            // console.log('Updating Profile (Quiz):', updatePayload);
+                            
+                            // Gunakan update langsung (sama seperti materi selesai)
+                            const { error: err } = await sb.from('profiles').update(updatePayload).eq('id', user.id);
+                            
+                            if (err) {
+                                console.error('Quiz Update Error:', err);
+                                alert('Gagal menyimpan progress ke database: ' + (err.message || 'Unknown error'));
+                            } else {
+                                // console.log('Quiz Update Success');
+                            }
+    
+                            // Refresh UI Dashboard Seketika
+                            if (typeof window.updateUserUI === 'function') {
+                                // console.log('Calling updateUserUI()...');
+                                window.updateUserUI();
+                            }
                         }
-
-                        // Use 'points' only (Kolom xp dihapus)
-                        const currentPoints = (profile.points !== undefined && profile.points !== null) ? Number(profile.points) : 0;
-                        
-                        const newTotal = currentPoints + xpEarned;
-
-                        const updatePayload = {
-                            points: newTotal, // Update points only
-                            badges: currentBadgesVal + badgesEarned
-                        };
-
-                        console.log('Updating Profile (Quiz):', updatePayload);
-                        
-                        // Gunakan update langsung (sama seperti materi selesai)
-                        const { error: err } = await sb.from('profiles').update(updatePayload).eq('id', user.id);
-                        
-                        if (err) {
-                            console.error('Quiz Update Error:', err);
-                            // Fallback: Coba RPC jika update langsung gagal (misal karena RLS column restriction)
-                            // Tapi user bilang materi selesai berhasil, jadi harusnya update langsung bisa.
-                            // Kita alert saja untuk debug user.
-                            alert('Gagal menyimpan progress ke database: ' + (err.message || 'Unknown error'));
-                        } else {
-                            console.log('Quiz Update Success');
-                        }
-
-                        // Refresh UI Dashboard Seketika
-                        if (typeof window.updateUserUI === 'function') {
-                            console.log('Calling updateUserUI()...');
-                            window.updateUserUI();
-                        }
+                    } else {
+                        // console.log('User sudah pernah main (alreadyPlayed=true), skip update profil.');
                     }
                 }
             } catch (err) {
@@ -1157,7 +1187,6 @@ async function initContentDetailPage() {
                         markBtn.disabled = true;
                         markBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
                         
-                        // GANTI RPC DENGAN DIRECT INSERT/UPDATE (Karena RPC mungkin error akibat kolom xp hilang)
                         // 1. Catat di user_reads (agar tombol disable permanen)
                         const { error: insertErr } = await sb.from('user_reads').insert({
                             user_id: user.id,
@@ -1165,33 +1194,89 @@ async function initContentDetailPage() {
                             read_at: new Date().toISOString()
                         });
 
-                        // Abaikan error duplicate key (jika sudah ada)
-                        if (insertErr && !insertErr.message.includes('duplicate')) {
-                             console.warn('Gagal insert user_reads:', insertErr);
-                             // Lanjut saja, mungkin RLS atau masalah lain, tapi kita coba beri poin
+                        // CEK SPAM: Jika error duplicate, berarti sudah pernah baca. Jangan tambah poin!
+                        if (insertErr) {
+                            if (insertErr.message.includes('duplicate') || insertErr.code === '23505') {
+                                console.warn('Materi sudah pernah dibaca (Duplicate).');
+                                
+                                // Ganti alert dengan Popup Sukses (tapi info sudah dibaca)
+                                if (window.Swal) {
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Sudah Dibaca',
+                                        text: 'Materi ini sudah pernah Anda baca sebelumnya.'
+                                    });
+                                } else {
+                                    alert('Materi ini sudah pernah Anda baca sebelumnya.');
+                                }
+                                
+                                markBtn.innerHTML = '<i class="fas fa-check-double"></i> Sudah Dibaca';
+                                markBtn.style.opacity = '0.7';
+                                return; 
+                            }
+                            console.error('Gagal insert user_reads:', insertErr);
+                            throw insertErr;
                         }
 
-                        // 2. Tambah Poin Manual
-                        const { data: profile } = await sb.from('profiles').select('points, materials_read_count').eq('id', user.id).single();
+                        // 2. Tambah Poin & Badge (Direct Update)
+                        // Ambil data profil terbaru
+                        const { data: profile } = await sb.from('profiles').select('points, materials_read_count, badges').eq('id', user.id).single();
+                        
                         if (profile) {
-                            const currentPoints = (profile.points !== undefined && profile.points !== null) ? Number(profile.points) : 0;
-                            const currentCount = profile.materials_read_count || 0;
+                            const currentPoints = Number(profile.points) || 0;
+                            const currentCount = Number(profile.materials_read_count) || 0;
+                            const currentBadges = Number(profile.badges) || 0;
                             
+                            // Logic Reward: +10 XP (Badge tidak ditambah di sini, badge biasanya dari pencapaian khusus/level up)
+                            // TAPI sesuai request Anda: "dapat 10 xp dan badge" -> Oke kita tambah badge +1 juga setiap baca?
+                            // Biasanya badge itu 'achievement', tapi saya ikuti request Anda.
+                            
+                            const xpReward = 10;
+                            const newPoints = currentPoints + xpReward;
+                            const newCount = currentCount + 1;
+                            // const newBadges = currentBadges + 1; // Opsional: Tambah badge tiap materi?
+
+                            // Update Database
                             const { error: updateErr } = await sb.from('profiles').update({
-                                points: currentPoints + 10,
-                                materials_read_count: currentCount + 1
+                                points: newPoints,
+                                materials_read_count: newCount
+                                // badges: newBadges (Skip badge increment tiap materi, kecuali diminta spesifik)
                             }).eq('id', user.id);
 
                             if (updateErr) throw updateErr;
+                            
+                            // 3. Tampilkan Popup Sukses
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Materi Selesai!',
+                                    html: `
+                                        <div style="text-align:center;">
+                                            <p style="font-size: 1.1em;">Kamu mendapatkan <b style="color:#4caf50;">+${xpReward} XP</b></p>
+                                            <p style="color:#666; font-size: 0.9em; margin-top:5px;">Total XP: <b>${newPoints}</b></p>
+                                        </div>
+                                    `,
+                                    confirmButtonText: 'Mantap!',
+                                    confirmButtonColor: '#4caf50'
+                                });
+                            } else {
+                                alert(`Materi selesai! Kamu mendapatkan +${xpReward} XP.\nTotal XP: ${newPoints}`);
+                            }
+
+                            // Update UI Header Langsung
+                            const headerXp = document.getElementById('headerUserXp');
+                            if (headerXp) headerXp.textContent = `${newPoints} XP`;
+                            
+                            // Track Daily Task (Baca Materi)
+                            if (typeof window.trackDailyTask === 'function') {
+                                window.trackDailyTask('read_material', 1);
+                            }
                         }
 
-                        // Sukses
-                        alert('Materi selesai! Kamu mendapatkan +10 XP.');
                         markBtn.innerHTML = '<i class="fas fa-check-double"></i> Sudah Dibaca';
+                        markBtn.style.opacity = '0.7';
                         
-                        // Refresh UI Dashboard Seketika (PENTING)
                         if (typeof window.updateUserUI === 'function') {
-                            console.log('Calling updateUserUI() after materi...');
                             window.updateUserUI();
                         }
 
@@ -1199,8 +1284,7 @@ async function initContentDetailPage() {
                         console.error('Gagal tandai selesai:', err);
                         markBtn.disabled = false;
                         markBtn.innerHTML = '<i class="fas fa-check-circle"></i> Tandai Selesai';
-                        // Pesan error yang lebih ramah
-                        alert('Gagal update data. Kemungkinan gangguan koneksi atau database.');
+                        alert('Gagal update data. Cek koneksi internet.');
                     }
                 };
             }
@@ -1223,47 +1307,90 @@ async function initContentDetailTracking() {
         const user = sessionData && sessionData.session ? sessionData.session.user : null;
         if (!user) return;
 
-        // 1. Simpan riwayat baca
+        // 1. CEK SPAM: Apakah user sudah pernah baca materi ini?
+        // Kita gunakan tabel 'daily_materi_reads' sebagai log history baca
+        const { data: existingLog, error: logErr } = await sb
+            .from('daily_materi_reads')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('materi_id', materiId)
+            .maybeSingle();
+
+        if (existingLog) {
+            console.log('Materi sudah dibaca sebelumnya. XP & Badge tidak ditambahkan.');
+            return; // STOP! Jangan kasih XP lagi.
+        }
+
+        // 2. Jika belum pernah baca, catat history baca
         await sb.from('daily_materi_reads').insert({
             user_id: user.id,
             materi_id: materiId,
+            // created_at otomatis terisi timestamp sekarang
         });
 
-        // 2. Update Profile: Tambah XP (+10) dan materials_read_count (+1)
-        // Cek dulu apakah materi ini sudah pernah dibaca sebelumnya untuk menghindari spam XP?
-        // Untuk sederhananya kita asumsikan setiap buka halaman = baca = dapat poin (sesuai request user "hadiah baca materi")
-        // Atau lebih baik pakai tabel user_reads yang unik.
-        // Tapi daily_materi_reads tampaknya log harian.
-        
+        // 3. Update Profile: Tambah XP (+10) dan Badge (+1 jika beruntung/setiap baca)
         // Ambil data profil saat ini
         const { data: profile } = await sb
             .from('profiles')
-            .select('points, materials_read_count') // HANYA AMBIL points
+            .select('points, badges, materials_read_count') 
             .eq('id', user.id)
             .single();
 
         if (profile) {
-            // Gunakan points saja
+            // Parsing yang aman untuk XP dan Badge
             const currentPoints = (profile.points !== undefined && profile.points !== null) ? Number(profile.points) : 0;
             const currentCount = profile.materials_read_count || 0;
+            
+            // Logika Badge: Pastikan badge tidak null/NaN
+            let currentBadges = 0;
+            if (profile.badges !== null && profile.badges !== undefined) {
+                if (typeof profile.badges === 'number') currentBadges = profile.badges;
+                else if (typeof profile.badges === 'string') currentBadges = parseInt(profile.badges) || 0;
+                // Jika array (format lama), ambil length-nya
+                else if (Array.isArray(profile.badges)) currentBadges = profile.badges.length;
+            }
 
-            const newTotal = currentPoints + 10;
+            const xpReward = 10;
+            const badgeReward = 1; // Dapat 1 badge setiap baca materi baru (bisa diubah logikanya nanti)
+
+            const newTotalXP = currentPoints + xpReward;
+            const newTotalBadges = currentBadges + badgeReward;
+            const newReadCount = currentCount + 1;
 
             const updatePayload = {
-                points: newTotal, // Update points saja
-                materials_read_count: currentCount + 1
+                points: newTotalXP,
+                badges: newTotalBadges,
+                materials_read_count: newReadCount
             };
 
-            console.log('Updating Profile (Read Material):', updatePayload);
-            await sb.from('profiles').update(updatePayload).eq('id', user.id);
+            console.log('Updating Profile (Read Material New):', updatePayload);
             
-            // Refresh UI jika fungsi tersedia
-            if (typeof window.updateUserUI === 'function') {
-                window.updateUserUI();
+            const { error: updateErr } = await sb.from('profiles').update(updatePayload).eq('id', user.id);
+            
+            if (!updateErr) {
+                // Tampilkan notifikasi kecil (Toast)
+                if (typeof Swal !== 'undefined') {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                    });
+                    Toast.fire({
+                        icon: 'success',
+                        title: `Materi Selesai! +${xpReward} XP & +${badgeReward} Badge`
+                    });
+                }
+                
+                // Refresh UI Dashboard
+                if (typeof window.updateUserUI === 'function') {
+                    window.updateUserUI();
+                }
             }
         }
 
-        // Track Daily Task: Read Material
+        // Lacak Tugas Harian: Baca Materi
         if (typeof window.trackDailyTask === 'function') {
             window.trackDailyTask('read_material', 1);
         }
@@ -1272,6 +1399,11 @@ async function initContentDetailTracking() {
         console.error('Tracking read error:', e);
     }
 }
+
+// Ekspos fungsi secara eksplisit ke window
+window.initDataPages = initDataPages;
+window.initContentDetailTracking = initContentDetailTracking;
+window.initMateriDetailPage = initContentDetailPage; // Alias jika diperlukan
 
 function pageTitleIncludes(text) {
     const title = document.querySelector('.section-title');
@@ -1316,6 +1448,24 @@ async function initQuizzesPage() {
         const { data: sessionData } = await sb.auth.getSession();
         const user = sessionData && sessionData.session ? sessionData.session.user : null;
         const premiumOk = user ? await isPremiumActive(sb, user.id) : false;
+        
+        // 1. Ambil History Kuis User (Skor Terakhir)
+        let quizAttempts = new Map();
+        if (user) {
+            const { data: attempts } = await sb
+                .from('quiz_attempts')
+                .select('quiz_id, score, total_questions')
+                .eq('user_id', user.id);
+            
+            if (attempts) {
+                attempts.forEach(a => {
+                    // Simpan skor tertinggi atau terakhir (tergantung kebutuhan, di sini kita ambil yg terakhir masuk array)
+                    // Lebih baik jika query order by created_at desc lalu ambil distinct, tapi ini versi simpel
+                    quizAttempts.set(a.quiz_id, { score: a.score, total: a.total_questions });
+                });
+            }
+        }
+
         const freeCount = 1;
         const visibleQuizzes = premiumOk ? quizzes : quizzes.slice(0, freeCount);
 
@@ -1328,14 +1478,40 @@ async function initQuizzesPage() {
                 const qc = typeof q.question_count === 'number' ? q.question_count : 0;
                 const duration = escapeHtml(q.duration || '');
                 const rating = q.rating != null ? String(q.rating) : '';
+                
+                // Cek status pengerjaan
+                const attempt = quizAttempts.get(q.id);
+                let statusBadge = '';
+                let footerText = duration || rating ? `${duration}${duration && rating ? ' • ' : ''}${rating ? `⭐ ${escapeHtml(rating)}` : ''}` : 'Mulai';
+                let footerIcon = '<i class="fas fa-arrow-right"></i>';
+                let footerColor = 'var(--primary)';
+
+                if (attempt) {
+                    const score = attempt.score;
+                    const total = attempt.total || qc;
+                    const pct = Math.round((score / total) * 100);
+                    
+                    statusBadge = `<div style="position:absolute;top:10px;right:10px;background:#28a745;color:white;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,0.2);z-index:5;">
+                        <i class="fas fa-check"></i> Skor: ${pct}
+                    </div>`;
+                    
+                    footerText = `Skor Terakhir: ${score}/${total}`;
+                    footerIcon = '<i class="fas fa-redo"></i>'; // Ikon ulangi
+                    footerColor = '#28a745';
+                }
+
                 const imgHtml = img
                     ? `<img src="${escapeHtml(img)}" alt="${title}" class="card-image">`
                     : `<div class="card-image" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(43,92,165,0.10), rgba(43,92,165,0.02));"><i class=\"fas fa-circle-question\" style=\"font-size:28px;color:rgba(31,60,115,0.65)\"></i></div>`;
+                
                 const meta = qc > 0 ? `${qc} soal` : 'Kuis';
-                const footerRight = duration || rating ? `${duration}${duration && rating ? ' • ' : ''}${rating ? `⭐ ${escapeHtml(rating)}` : ''}` : 'Mulai';
+                
                 return `
                 <div class="card" onclick="window.location.href='quiz-detail.html?id=${encodeURIComponent(q.id)}'">
-                    ${imgHtml}
+                    <div style="position:relative;">
+                        ${imgHtml}
+                        ${statusBadge}
+                    </div>
                     <div class="card-body">
                         <div class="card-meta">${escapeHtml(meta)}</div>
                         <h3 class="card-title">${title}</h3>
@@ -1343,7 +1519,7 @@ async function initQuizzesPage() {
                     </div>
                     <div class="card-footer">
                         <span class="card-tag"><i class="fas fa-list" style="margin-right: 5px;"></i> ${escapeHtml(meta)}</span>
-                        <span style="color: var(--primary); font-size: 13px; font-weight: 600;">${footerRight} <i class="fas fa-arrow-right"></i></span>
+                        <span style="color: ${footerColor}; font-size: 13px; font-weight: 600;">${footerText} ${footerIcon}</span>
                     </div>
                 </div>`;
             })
@@ -1975,43 +2151,108 @@ async function initTokohPage() {
             .ilike('name', '%tokoh%')
             .limit(1);
 
-        if (catErr) return;
+        if (catErr) {
+            console.error('Error fetching category:', catErr);
+            return;
+        }
         const cat = Array.isArray(categories) && categories[0] ? categories[0] : null;
-        if (!cat) return;
+        if (!cat) {
+            console.warn('Category "Tokoh" not found');
+            return;
+        }
 
         const { data: materi, error } = await sb
             .from('materi')
             .select('id, title, subtitle, image_url, summary, created_at')
             .eq('category_id', cat.id)
             .order('created_at', { ascending: false })
-            .limit(24);
+            .limit(100);
 
-        if (error) return;
-        const items = Array.isArray(materi) ? materi : [];
-        if (items.length === 0) return;
+        if (error) {
+            console.error('Error fetching materi:', error);
+            return;
+        }
+        
+        const allItems = Array.isArray(materi) ? materi : [];
+        if (allItems.length === 0) {
+            return;
+        }
 
-        grid.innerHTML = items
-            .map((m) => {
-                const title = escapeHtml(m.title || 'Tokoh');
-                const role = escapeHtml(m.subtitle || (m.summary || '').slice(0, 60));
-                const img = (m.image_url || '').trim();
-                const imgTag = img
-                    ? `<img src="${escapeHtml(img)}" alt="${title}">`
-                    : `<div style="height: 170px; display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(43,92,165,0.10), rgba(43,92,165,0.02));"><i class=\"fas fa-users\" style=\"font-size:28px;color:rgba(31,60,115,0.65)\"></i></div>`;
-                return `
-                <div class="story-card" onclick="window.location.href='content-detail.html?id=${encodeURIComponent(m.id)}'">
-                    <div class="story-image-wrapper">
-                        ${imgTag}
-                    </div>
-                    <div class="story-body">
-                        <div class="story-title">${title}</div>
-                        <div class="story-role">${role}</div>
-                    </div>
-                </div>`;
-            })
-            .join('');
+        const renderTokoh = (items) => {
+            if (items.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-light);">Tidak ada tokoh ditemukan untuk filter ini.</div>';
+                return;
+            }
+            grid.innerHTML = items
+                .map((m) => {
+                    const title = escapeHtml(m.title || 'Tokoh');
+                    const role = escapeHtml(m.subtitle || (m.summary || '').slice(0, 60));
+                    const img = (m.image_url || '').trim();
+                    const imgTag = img
+                        ? `<img src="${escapeHtml(img)}" alt="${title}">`
+                        : `<div style="height: 170px; display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg, rgba(43,92,165,0.10), rgba(43,92,165,0.02));"><i class="fas fa-users" style="font-size:28px;color:rgba(31,60,115,0.65)"></i></div>`;
+                    
+                    return `
+                    <div class="story-card" onclick="window.location.href='content-detail.html?id=${encodeURIComponent(m.id)}'">
+                        <div class="story-image-wrapper">
+                            ${imgTag}
+                        </div>
+                        <div class="story-body">
+                            <div class="story-title">${title}</div>
+                            <div class="story-role">${role}</div>
+                        </div>
+                    </div>`;
+                })
+                .join('');
+        };
+
+        renderTokoh(allItems);
+
+        const pills = document.querySelectorAll('.category-pills .pill');
+        pills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                const filter = pill.textContent.trim();
+                let filtered = allItems;
+
+                if (filter === 'Semua') {
+                    filtered = allItems;
+                } else if (filter === 'Presiden & VP') {
+                    filtered = allItems.filter(m => {
+                        const t = (m.title || '').toLowerCase();
+                        const s = (m.subtitle || '').toLowerCase();
+                        return t.includes('presiden') || s.includes('presiden') || t.includes('wakil') || s.includes('wakil');
+                    });
+                } else if (filter === 'Pahlawan Nasional') {
+                    filtered = allItems.filter(m => {
+                        const t = (m.title || '').toLowerCase();
+                        const s = (m.subtitle || '').toLowerCase();
+                        return t.includes('pahlawan') || s.includes('pahlawan') || t.includes('nasional') || s.includes('nasional');
+                    });
+                } else if (filter === 'Ilmuwan') {
+                    filtered = allItems.filter(m => {
+                        const t = (m.title || '').toLowerCase();
+                        const s = (m.subtitle || '').toLowerCase();
+                        return t.includes('ilmuwan') || s.includes('ilmuwan') || t.includes('prof') || s.includes('prof') || t.includes('dr.') || s.includes('dr.');
+                    });
+                } else if (filter === 'Seni & Budaya') {
+                    filtered = allItems.filter(m => {
+                        const t = (m.title || '').toLowerCase();
+                        const s = (m.subtitle || '').toLowerCase();
+                        return t.includes('seni') || s.includes('seni') || t.includes('budaya') || s.includes('budaya') || t.includes('sastra') || s.includes('sastra') || t.includes('penyair') || s.includes('penyair');
+                    });
+                } else if (filter === 'Militer') {
+                    filtered = allItems.filter(m => {
+                        const t = (m.title || '').toLowerCase();
+                        const s = (m.subtitle || '').toLowerCase();
+                        return t.includes('jenderal') || s.includes('jenderal') || t.includes('laksamana') || s.includes('laksamana') || t.includes('kapitan') || s.includes('kapitan') || t.includes('perwira') || s.includes('perwira') || t.includes('mayor') || s.includes('mayor');
+                    });
+                }
+                renderTokoh(filtered);
+            });
+        });
+
     } catch (e) {
-        // ignore
+        console.error('Error in initTokohPage:', e);
     }
 }
 

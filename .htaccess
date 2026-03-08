@@ -1,8 +1,21 @@
 RewriteEngine On
 
-# Paksa HTTPS (Ubah http ke https otomatis)
+# 1. Paksa HTTPS (Ubah http ke https otomatis)
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Halaman Error 404 (Jika halaman tidak ditemukan, arahkan ke landing page)
+# 2. Hapus /index.html dari URL utama
+RewriteRule ^index\.html$ / [R=301,L]
+
+# 3. Hapus ekstensi .html dari URL lain (misal: /login.html jadi /login)
+# Jika user mengetik /login, server akan membuka login.html
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^([^/]+)/?$ $1.html [L]
+
+# 4. Redirect URL lama (/login.html) ke URL bersih (/login) agar user tidak melihat .html
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L]
+
+# 5. Halaman Error 404
 ErrorDocument 404 /landing.html

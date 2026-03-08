@@ -714,7 +714,6 @@ function resetMemoryGame() {
 }
 
 async function saveScore(finalScore) {
-    // Integrate with Supabase if needed
     console.log('Game Finished. Score:', finalScore);
     
     try {
@@ -723,42 +722,61 @@ async function saveScore(finalScore) {
             const { data: { user } } = await sb.auth.getUser();
             
             if (user) {
-                // Update profile XP (Points) & Badges
-                // Ideally this should be an RPC or checked against daily limits
-                const { data: profile } = await sb.from('profiles').select('points, badges').eq('id', user.id).single();
-                if (profile) {
-                    const newPoints = (profile.points || 0) + finalScore;
-                    
-                    // Logika Badge Game: Setiap menang/selesai dapat 1 Badge tambahan (jika skor > 0)
-                    let currentBadges = 0;
-                    if (typeof profile.badges === 'number') currentBadges = profile.badges;
-                    else if (Array.isArray(profile.badges)) currentBadges = profile.badges.length;
-                    
-                    const badgesEarned = finalScore > 0 ? 1 : 0;
-                    const newBadges = currentBadges + badgesEarned;
+                // 1. Cek Anti-Spam: Gunakan tabel quiz_attempts untuk track game juga
+                // Gunakan ID unik untuk game ini, misal 'game_memory_match'
+                const gameId = 'game_memory_match';
+                let alreadyPlayed = false;
 
-                    const { error } = await sb.from('profiles').update({ 
-                        points: newPoints,
-                        badges: newBadges
-                    }).eq('id', user.id);
-                    
-                    if (!error) {
-                        console.log('XP (Points) Updated:', newPoints, 'Badges:', newBadges);
-                        
-                        // Show visual feedback for badge
-                        if (badgesEarned > 0) {
-                            // Coba tampilkan notifikasi badge jika memungkinkan
-                            // alert('Kamu dapat 1 Badge!'); // Terlalu mengganggu, skip saja
-                        }
-                        
-                        // Track Daily Task: Play Game
-                        if (typeof window.trackDailyTask === 'function') {
-                            window.trackDailyTask('play_game', 1);
-                        }
+                // Cek history hari ini (atau total history jika one-time reward)
+                // Kita asumsikan one-time reward agar konsisten dengan Kuis
+                const { data: history } = await sb.from('quiz_attempts')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('quiz_id', gameId)
+                    .maybeSingle();
 
-                        // Refresh UI Dashboard segera setelah update berhasil
-                        if (typeof window.updateUserUI === 'function') {
-                            window.updateUserUI();
+                if (history) {
+                    alreadyPlayed = true;
+                    console.log('Game sudah pernah dimainkan. Tidak ada reward baru.');
+                }
+
+                // 2. Simpan History Permainan
+                // Upsert agar tidak error duplicate, tapi update score jika lebih tinggi
+                const { error: logErr } = await sb.from('quiz_attempts').upsert({
+                    user_id: user.id,
+                    quiz_id: gameId,
+                    score: finalScore,
+                    total_questions: 100, // Dummy max score
+                    points_earned: alreadyPlayed ? 0 : (finalScore > 0 ? 10 : 0) // 10 XP jika menang
+                }, { onConflict: 'user_id,quiz_id' });
+
+                if (logErr) console.warn('Gagal simpan history game:', logErr);
+
+                // 3. Update Profil (Hanya jika belum pernah main & skor > 0)
+                if (!alreadyPlayed && finalScore > 0) {
+                    const { data: profile } = await sb.from('profiles').select('points, badges').eq('id', user.id).single();
+                    if (profile) {
+                        // Robust Badge Parsing
+                        let currentBadges = 0;
+                        if (typeof profile.badges === 'number') currentBadges = profile.badges;
+                        else if (typeof profile.badges === 'string') currentBadges = parseInt(profile.badges) || 0;
+                        else if (Array.isArray(profile.badges)) currentBadges = profile.badges.length;
+
+                        // Reward: +10 XP dan +1 Badge
+                        const newPoints = (Number(profile.points) || 0) + 10;
+                        const newBadges = currentBadges + 1;
+
+                        const { error } = await sb.from('profiles').update({ 
+                            points: newPoints,
+                            badges: newBadges
+                        }).eq('id', user.id);
+                        
+                        if (!error) {
+                            console.log('Reward Game Berhasil: +10 XP, +1 Badge');
+                            // Refresh UI
+                            if (typeof window.updateUserUI === 'function') window.updateUserUI();
+                            // Track Daily Task
+                            if (typeof window.trackDailyTask === 'function') window.trackDailyTask('play_game', 1);
                         }
                     }
                 }
